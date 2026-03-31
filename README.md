@@ -29,3 +29,23 @@ is_number_positive(42) = true
 is_number_positive(-1) = false
 === done ===
 ```
+
+## Run Tests
+
+```bash
+ctest -V --test-dir build
+```
+
+This runs 10 tests across 3 suites. Two tests are intentionally failing
+(`FaultyExpectation`, `FaultyZeroCheck`) to produce realistic CI failure output.
+
+Expected summary (last lines):
+
+```
+80% tests passed, 2 tests failed out of 10
+
+The following tests FAILED:
+          6 - demo_utils_divide.FaultyExpectation (Failed)
+         10 - demo_utils_is_positive.FaultyZeroCheck (Failed)
+Errors while running CTest
+```
