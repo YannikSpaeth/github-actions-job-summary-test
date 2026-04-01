@@ -7,8 +7,15 @@ jobs:
   test-job-summary:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -B build
+
+      - name: Build
+        run: cmake --build build
+        
       - name: Run Tests
         run: ctest -V --test-dir build --output-junit build/test-results.xml
-  
-      - name: Parse Test Results
-        run: python scripts/parse_results.py build/test-results.xml
+
