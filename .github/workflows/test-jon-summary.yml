@@ -5,6 +5,7 @@ on:
 
 jobs:
   test-job-summary:
+    runs-on: ubuntu-latest
     steps:
       - name: Run Tests
         run: ctest -V --test-dir build --output-junit build/test-results.xml
