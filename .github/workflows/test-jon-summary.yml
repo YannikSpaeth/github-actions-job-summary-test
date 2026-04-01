@@ -1,0 +1,13 @@
+name: test-job-summary
+
+on:
+  push:
+
+jobs:
+  test-job-summary:
+    steps:
+      - name: Run Tests
+        run: ctest -V --test-dir build --output-junit build/test-results.xml
+  
+      - name: Parse Test Results
+        run: python scripts/parse_results.py build/test-results.xml
