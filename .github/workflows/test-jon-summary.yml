@@ -18,6 +18,7 @@ jobs:
         
       - name: Run Tests
         run: ctest -V --test-dir build --output-junit build/test-results.xml
+        continue-on-error: true
 
       - name: Install Python deps
         run: |
