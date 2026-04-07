@@ -1,8 +1,9 @@
 # Read XML File
 # Parse errors with junitparser
-# Output organized error summary
+# Output organized error summary in JSON
 
 import argparse
+import json
 from junitparser import JUnitXml, Failure, Error
 
 # Command-line argument parsing
@@ -13,9 +14,12 @@ args = parser.parse_args()
 # XML-Datei laden
 xml = JUnitXml.fromfile(args.xml_file)
 
+# Datenstruktur für JSON
+result = {"test_suites": []}
+
 # Über Testsuites und Testcases iterieren
 for suite in xml:
-    print(f"Suite: {suite.name}")
+    suite_data = {"name": suite.name, "tests": []}
     for case in suite:
         status = "PASSED"
         if case.result:
@@ -23,5 +27,8 @@ for suite in xml:
                 status = "FAILED"
             elif isinstance(case.result[0], Error):
                 status = "ERROR"
+        suite_data["tests"].append({"name": case.name, "status": status})
+    result["test_suites"].append(suite_data)
 
-        print(f"  Test: {case.name} -> {status}")
+# JSON ausgeben
+print(json.dumps(result, indent=2))

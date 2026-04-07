@@ -17,7 +17,7 @@ jobs:
         run: cmake --build build
         
       - name: Run Tests
-        run: ctest -V --test-dir build --output-junit build/test-results.xml
+        run: ctest -V --test-dir build --output-junit test-results.xml
         continue-on-error: true
 
       - name: Install Python deps
