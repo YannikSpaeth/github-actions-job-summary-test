@@ -5,10 +5,11 @@
 import argparse
 import json
 from junitparser import JUnitXml, Failure, Error
+import os
 
 # Command-line argument parsing
 parser = argparse.ArgumentParser(description='Parse JUnit XML and summarize test results.')
-parser.add_argument('xml_file', help='Path to the JUnit XML file')
+parser.add_argument('xml_file', nargs='?', default='build/test-results.xml', help='Path to the JUnit XML file')
 args = parser.parse_args()
 
 # XML-Datei laden
@@ -32,3 +33,8 @@ for suite in xml:
 
 # JSON ausgeben
 print(json.dumps(result, indent=2))
+# Write to GitHub Actions job summary
+with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+    f.write("## Test Results Summary\n\n```json\n")
+    f.write(json.dumps(result, indent=2))
+    f.write("\n```\n")
