@@ -32,6 +32,30 @@ def extract_failure_details(system_out: str, test_name: str) -> str:
             captured.append(line)
     return "\n".join(captured).strip()
 
+def make_source_link(text: str) -> str:
+    """Parse 'file:line: Failure' from the first line of GTest output and return a markdown link."""
+    if not text:
+        return ""
+    first_line = text.strip().splitlines()[0]
+    # GTest format: /abs/path/to/file.cpp:29: Failure
+    match = re.match(r'^(.+?):(\d+):\s+\w+', first_line)
+    if not match:
+        return first_line
+    abs_path, line_no = match.group(1), match.group(2)
+
+    # Strip workspace prefix to get a repo-relative path
+    workspace = os.environ.get('GITHUB_WORKSPACE', '').rstrip('/')
+    rel_path = abs_path[len(workspace):].lstrip('/') if workspace and abs_path.startswith(workspace) else abs_path
+
+    # Build a GitHub blob link if we have repo info
+    server = os.environ.get('GITHUB_SERVER_URL', 'https://github.com')
+    repo   = os.environ.get('GITHUB_REPOSITORY', '')
+    sha    = os.environ.get('GITHUB_SHA', 'HEAD')
+    if repo:
+        url = f"{server}/{repo}/blob/{sha}/{rel_path}#L{line_no}"
+        return f"[{rel_path}:{line_no}]({url})"
+    return f"{rel_path}:{line_no}"
+
 # Command-line argument parsing
 parser = argparse.ArgumentParser(description='Parse JUnit XML and summarize test results.')
 parser.add_argument('xml_file', nargs='?', default='build/test-results.xml', help='Path to the JUnit XML file')
@@ -94,11 +118,7 @@ if summary_path:
                 f.write("| Test | Status | What went wrong |\n")
                 f.write("|------|--------|------------------|\n")
                 for t in failures:
-                    msg = ""
-                    if t.get("details"):
-                        # Use message field if available, otherwise first line of text
-                        raw = t["details"].get("message") or (t["details"].get("text") or "").strip().splitlines()[0] if t["details"].get("text") else ""
-                        msg = raw.replace("|", "\\|").replace("\n", " ")
+                    msg = make_source_link(t.get("details", {}).get("text", ""))
                     f.write(f"| {t['name']} | {t['status']} | {msg} |\n")
                 f.write("\n")
 
