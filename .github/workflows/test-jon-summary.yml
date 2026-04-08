@@ -27,17 +27,18 @@ jobs:
 
       - name: Prepare XML for collector
         run: |
-          if [ -f build/test-results.xml ]; then
-            echo "XML file found: build/test-results.xml"
+          if [ -f test-results.xml ]; then
+            echo "XML file found: test-results.xml"
           else
             echo "No test-results.xml found"
-            ls -la build || true
+            ls -la . || true
           fi
 
       - name: Run collector
+        if: always()
         run: |
           mkdir -p build
-          python3 scripts/collect_errors.py build/test-results.xml > build/collector-output.txt
+          python3 scripts/collect_errors.py test-results.xml > build/collector-output.txt
 
       - name: Upload collector output
         if: always()

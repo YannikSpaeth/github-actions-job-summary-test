@@ -38,6 +38,14 @@ parser.add_argument('xml_file', nargs='?', default='build/test-results.xml', hel
 args = parser.parse_args()
 
 # XML-Datei laden
+if not os.path.exists(args.xml_file):
+    print(f"ERROR: XML file not found: {args.xml_file}", flush=True)
+    summary_path = os.environ.get('GITHUB_STEP_SUMMARY')
+    if summary_path:
+        with open(summary_path, 'a') as f:
+            f.write(f"## Test Results Summary\n\n**No XML file found at `{args.xml_file}`** — tests may not have run.\n")
+    raise SystemExit(1)
+
 xml = JUnitXml.fromfile(args.xml_file)
 
 # Datenstruktur für JSON
