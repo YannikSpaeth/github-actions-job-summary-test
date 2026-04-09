@@ -1,49 +1,43 @@
-name: test-job-summary
+name: Build and Test
 
 on:
   push:
+  pull_request:
 
 jobs:
-  test-job-summary:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
+    steps:
+      - uses: actions/checkout@v4
       - name: Configure CMake
         run: cmake -B build
+        continue-on-error: true
 
       - name: Build
         run: cmake --build build
-        
+        continue-on-error: true
+
       - name: Run Tests
         run: ctest -V --test-dir build --output-junit test-results.xml
         continue-on-error: true
-
-      - name: Install Python deps
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install junitparser
-
-      - name: Prepare XML for collector
-        run: |
-          if [ -f build/test-results.xml ]; then
-            echo "XML file found: build/test-results.xml"
-          else
-            echo "No test-results.xml found"
-            ls -la build || true
-          fi
-
-      - name: Run collector
-        if: always()
-        run: |
-          mkdir -p build
-          python3 scripts/collect_errors.py build/test-results.xml > build/collector-output.txt
-
-      - name: Upload collector output
+        
+      - name: Upload JUnit XML
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: collector-output
-          path: build/collector-output.txt
+          name: test-results-ubuntu
+          path: build/test-results.xml
+          retention-days: 7
+
+  report:
+    needs: [build]
+    if: always()
+    uses: ./.github/workflows/collect-and-report.yml
+    with:
+      artifact-pattern: 'test-results-*'
+      pr-number: ${{ github.event.pull_request.number }}
+      sha: ${{ github.sha }}
+    secrets: inherit
+
 

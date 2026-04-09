@@ -1,0 +1,55 @@
+name: Collect and Report
+
+on:
+  workflow_call:
+    inputs:
+      artifact-pattern:
+        description: 'Glob pattern matching the XML artifact names (e.g. test-results-*)'
+        required: false
+        default: 'test-results-*'
+        type: string
+      pr-number:
+        description: 'PR number to post/update comment on (empty = skip PR comment)'
+        required: false
+        default: ''
+        type: string
+      sha:
+        description: 'Git SHA to use for source links'
+        required: false
+        default: ''
+        type: string
+jobs:
+  collect-and-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout (for scripts)
+        uses: actions/checkout@v4
+
+      - name: Download all XML artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.artifact-pattern }}
+          path: xml-artifacts/
+          # Each artifact lands in xml-artifacts/<artifact-name>/<file>
+          # e.g. xml-artifacts/test-results-ubuntu/test-results.xml
+
+      - name: List downloaded files
+        run: find xml-artifacts/ -type f | sort
+
+      - name: Install Python deps (once for all platforms)
+        run: pip install --quiet junitparser requests
+
+      - name: Parse XMLs and post PR comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/merge_and_post.py \
+            --xml-dir    xml-artifacts/ \
+            --pr-number  "${{ inputs.pr-number }}" \
+            --repo       "${{ github.repository }}" \
+            --run-id     "${{ github.run_id }}" \
+            --sha        "${{ inputs.sha || github.sha }}"
