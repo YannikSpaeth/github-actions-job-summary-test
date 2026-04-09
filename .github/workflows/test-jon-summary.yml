@@ -33,6 +33,8 @@ jobs:
   report:
     needs: [build]
     if: always()
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/collect-and-report.yml
     with:
       artifact-pattern: 'test-results-*'
