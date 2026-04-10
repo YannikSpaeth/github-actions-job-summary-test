@@ -2,6 +2,7 @@
 #include "utils.h"
 
 int main() {
+    
     std::cout << "=== demo_app ===" << std::endl;
 
     int sum = add(3, 4);

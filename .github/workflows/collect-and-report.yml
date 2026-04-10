@@ -41,7 +41,7 @@ jobs:
         run: find xml-artifacts/ -type f | sort
 
       - name: Install Python deps (once for all platforms)
-        run: pip install --quiet junitparser requests
+        run: pip install --quiet junitparser requests jinja2
 
       - name: Parse XMLs and post PR comment
         env:
