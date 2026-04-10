@@ -1,0 +1,27 @@
+name: Build and Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ubuntu:
+    uses: ./.github/workflows/build-ubuntu.yml
+
+  windows:
+    uses: ./.github/workflows/build-windows.yml
+
+  report:
+    needs: [ubuntu, windows]
+    if: always()
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/collect-and-report.yml
+    with:
+      artifact-pattern: 'test-results-*'
+      pr-number: ${{ github.event.pull_request.number }}
+      sha: ${{ github.sha }}
+    secrets: inherit
+
+
