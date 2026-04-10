@@ -11,7 +11,7 @@
 
 {% for f in r.failures %}
 <details>
-<summary><code>{{ f.name }}</code> — {{ f.link }}</summary>
+<summary><code>{{ f.name.split('.')[-1] }}</code>{% if f.link_url %} — <a href="{{ f.link_url }}">{{ f.link_text }}</a>{% endif %}</summary>
 
 ```
 {{ f.message }}
