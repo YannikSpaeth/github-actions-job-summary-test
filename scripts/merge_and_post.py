@@ -29,16 +29,17 @@ def extract_gtest_failure(system_out, test_name):
 
 
 def build_source_link(failure_text, repo, sha):
-    """Parse the file:line header from a GTest failure and return a markdown link to that line on GitHub."""
+    """Parse the file:line header from a GTest failure and return (display_text, url)."""
     if not failure_text:
-        return ""
+        return "", ""
     match = re.match(r'^(.+?):(\d+):\s+\w+', failure_text.strip().splitlines()[0])
     if not match:
-        return ""
+        return "", ""
     path, line = match.group(1), match.group(2)
     if WORKSPACE and path.startswith(WORKSPACE):
         path = path[len(WORKSPACE):].lstrip("/")
-    return f"[{path}:{line}]({SERVER}/{repo}/blob/{sha}/{path}#L{line})" if repo else f"{path}:{line}"
+    url = f"{SERVER}/{repo}/blob/{sha}/{path}#L{line}" if repo else ""
+    return f"{path}:{line}", url
 
 
 def parse_xml_file(xml_path, platform, repo, sha):
@@ -49,10 +50,12 @@ def parse_xml_file(xml_path, platform, repo, sha):
             if case.result and isinstance(case.result[0], (Failure, Error)):
                 body  = extract_gtest_failure(case.system_out, case.name)
                 lines = body.splitlines()
+                link_text, link_url = build_source_link(body, repo, sha)
                 failures.append({
-                    "name":    f"{suite.name}.{case.name}",
-                    "link":    build_source_link(body, repo, sha),
-                    "message": "\n".join(lines[1:]).strip() if len(lines) > 1 else body,
+                    "name":      f"{suite.name}.{case.name}",
+                    "link_text": link_text,
+                    "link_url":  link_url,
+                    "message":   "\n".join(lines[1:]).strip() if len(lines) > 1 else body,
                 })
             else:
                 passed += 1

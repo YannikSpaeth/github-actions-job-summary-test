@@ -9,19 +9,16 @@
 {% for r in results if r.failures %}
 ### :x: {{ r.platform }}
 
-| Test | Location |
-|------|----------|
-{% for f in r.failures -%}
-| `{{ f.name }}` | {{ f.link }} |
-{% endfor %}
-<details><summary>Full output</summary>
-{% for f in r.failures if f.message %}
-**`{{ f.name }}`**
+{% for f in r.failures %}
+<details>
+<summary><code>{{ f.name.split('.')[-1] }}</code>{% if f.link_url %} — <a href="{{ f.link_url }}">{{ f.link_text }}</a>{% endif %}</summary>
+
 ```
 {{ f.message }}
 ```
-{% endfor %}
+
 </details>
+{% endfor %}
 {% else %}
 {% if results | selectattr("failures") | list | length == 0 %}
 :white_check_mark: **All tests passed on all platforms.**
